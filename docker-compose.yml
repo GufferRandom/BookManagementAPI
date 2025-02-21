@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  sqlserver:
+    container_name: app-db
+    image: rapidfort/microsoft-sql-server-2019-ib
+    ports:
+      - "500:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Nagazi2@Secure
+    volumes:
+      - ./init-db.sql:/init-db.sql 
+  bookmanagementapi:
+    container_name: bookmanagementapi
+    build: 
+      context: .
+    ports:
+      - "100:8080"
+     
+    depends_on:
+      - sqlserver
+    environment:
+      - DB_SERVER=sqlserver
+      - DB_DATABASE=BookManagementApi
+      - DB_PASSWORD=Nagazi2@Secure
+      - ASPNETCORE_ENVIRONMENT=Development
