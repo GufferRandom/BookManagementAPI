@@ -13,5 +13,6 @@ namespace BookManagementAPI.Models
         [Required]
         public string AuthorName {get;set;}
         public int ViewsCount {get;set;}=0;
+        public bool SoftDeleted { get; set; }=false;
     }
 }
