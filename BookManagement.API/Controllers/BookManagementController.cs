@@ -138,10 +138,7 @@ namespace BookManagementAPI.Controllers
                 i.SoftDeleted= true;
             }
             List<int> SoftDeletedIds = new();
-            if (ErrorBookIds.Count > 0)
-            {
-                SoftDeletedIds = BookIds.Except(ErrorBookIds).ToList();
-            }
+            SoftDeletedIds = BookIds.Except(ErrorBookIds).ToList();
             var res = new
             {
                 SoftDeleted = SoftDeletedIds,
