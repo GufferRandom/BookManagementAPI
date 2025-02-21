@@ -17,7 +17,7 @@ namespace BookManagementAPI.Controllers
         [HttpGet("GetBooksByPopularityScore")]
         public IActionResult GetBooksByPopularityScore([FromQuery,Range(1,99999)] int PageSize = 5, [FromQuery,Range(1,99999)] int PageNumber=1)
         {
-            var books =_context.Books.OrderByDescending(x => (int)Math.Round(x.ViewsCount * 0.5)
+            var books =_context.Books.Where(x=>x.SoftDeleted==false).OrderByDescending(x => (int)Math.Round(x.ViewsCount * 0.5)
             -((DateTime.Now.Year-x.PublicationYear)*2)).Skip((PageNumber-1)*PageSize).Take(PageSize)
             .Select(x=>x.Title).ToList();
             return Ok(books);
@@ -25,7 +25,7 @@ namespace BookManagementAPI.Controllers
         [HttpGet("GetBook/{Id:int}")]
         public IActionResult GetBookDetails(int Id)
         {
-            var book = _context.Books.FirstOrDefault(x => x.Id == Id);
+            var book = _context.Books.FirstOrDefault(x => x.Id == Id && x.SoftDeleted==false);
             if(book==null)
             {
                 return NotFound("The Book Cant Be Found. Please Enter Valid Book Id");
@@ -44,7 +44,19 @@ namespace BookManagementAPI.Controllers
             return Ok(bookextend);
         }
         [HttpPost("AddBook")]
-        public IActionResult AddBook([FromBody] List<BookDto> booksdto)
+        public IActionResult AddBook([FromBody] BookDto bookDto){
+            if(_context.Books.Any(x=>x.Title == bookDto.Title)){
+                return BadRequest("The Book Arleady Exists.Enter diffrent Title");
+            }
+            Books book  =new(){
+                PublicationYear=bookDto.PublicationYear,
+                Title=bookDto.Title,AuthorName=bookDto.AuthorName};
+            _context.Add(book);
+            _context.SaveChanges();
+            return Ok(book);
+        }
+        [HttpPost("AddBooks")]
+        public IActionResult AddBooks([FromBody] List<BookDto> booksdto)
         {
             if(booksdto.Count==0)
             {
@@ -111,6 +123,25 @@ namespace BookManagementAPI.Controllers
             };
             return Ok(reply);
         }
+        [HttpDelete("DeleteBook/{Id:int}")]
+        public IActionResult DeleteBook(int Id){
+            Books book  = _context.Books.FirstOrDefault(x=>x.Id==Id);
+            if(book==null){
+                return NotFound("The BookId Cannot Be Found.Enter diffrent  Book id");
+            }
+            if(book.SoftDeleted==true){
+                return BadRequest("The Book Is Arleady Deleted");
+            }
+            book.SoftDeleted=true;
+            _context.SaveChanges();
+            var response = new{
+                Messege="The Book Was Deleted Succesfully",
+                DeletedBook=new BookDto{Title=book.Title,AuthorName=book.AuthorName
+                ,PublicationYear=book.PublicationYear}
+            };
+            return Ok(response);
+        }
+       
         [HttpDelete("DeleteBooks")]
         public IActionResult DeleteBooks([FromBody] List<int> BookIds)
         {
@@ -131,7 +162,7 @@ namespace BookManagementAPI.Controllers
                     Messege = "The Book Or The Books Cant Be Found.Enter Valid BookID",
                     ErrorBookIds
                 };
-                return BadRequest(response);
+                return NotFound(response);
             }
             foreach(var i in books)
             {
