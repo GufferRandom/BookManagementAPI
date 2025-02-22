@@ -1,5 +1,5 @@
 # Description
-The Book Management API is a RESTful API developed using ASP.NET Core Web API. It supports the full range of CRUD operations, including creating, reading, updating, and deleting books. Additionally, it offers features like pagination.
+The Book Management API is a RESTful API developed using ASP.NET Core Web API. It supports CRUD operations, creating, reading, updating, and deleting books. Additionally, it offers features like pagination.
 #### 📖 BookManagementAPI EndPoints
 | Method  | Endpoint  | Description |
 |---------|----------|-------------|
