@@ -25,6 +25,7 @@ Run the following commands in your terminal:
 dotnet build
 dotnet run
 ```
+3.if it is  successful, visit   localhost:5000/swagger to see the API documentation.
 
 ## Second Version: Run with Docker and Docker Compose
 
