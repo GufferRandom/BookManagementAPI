@@ -1,15 +1,15 @@
 
 ### 📌 API Endpoints
-
+#### 📖 BookManagementAPI
 | Method  | Endpoint  | Description |
 |---------|----------|-------------|
-| **GET** | `/api` | Get |
-| **GET** | `/api` | Get |
-| **POST** | `/api` | Add |
-| **POST** | `/api` | Add  |
-| **PUT** | `/api/` | Upda |
-| **DELETE** | `` | Soft  |
-| **DELETE** | `` | Soft |
+| **GET** | `/api/BookManagement/GetBooksByPopularityScore?PageSize={Size}&PageNumber={Number}` the default Size is 5 and The Default Number is 1 |Retrieve a paginated list of books sorted by popularity in descending order. |
+| **GET** | `/api/BookManagement/GetBook/{Id}` |Fetch details of a book, including author, title, view count, popularity, etc.  |
+| **POST** | `/api/BookManagement/AddBook` | Add a new book |
+| **POST** | `/api/BookManagement/AddBooks` | Add multiple books or One |
+| **PUT** | `/api/BookManagement/UpdateBook/{Id}` | Update a book |
+| **DELETE** | `/api/BookManagement/DeleteBook/{Id}` | Soft delete a book  |
+| **DELETE** | `/api/BookManagement/DeleteBooks` | Soft delete multiple books or one |
 
 
 
