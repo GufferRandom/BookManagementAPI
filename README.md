@@ -1,8 +1,15 @@
 # To Run This Project
 
 You can run this project locally, but you need SQL Server and .NET 9.0 installed.
-
-## 1. Set up your configuration:
+## 1. Clone The Repository
+```bash
+git clone https://github.com/GufferRandom/BookManagementAPI.git
+```
+then enter the directory and then subdirectory 
+```bash
+cd .\BookManagementAPI\BookManagement.API\
+```
+## 2. Set up your configuration:
 
 - In the `appsettings.json`, change `DB_SERVER` to your SQL Server name.  
   ![image](https://github.com/user-attachments/assets/151fd13b-2359-4ed2-b430-2579b2365386)
