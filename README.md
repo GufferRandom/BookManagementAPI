@@ -59,3 +59,7 @@ cd BookManagementAPI
 docker-compose -f 'docker-compose.yml' up -d --build
 ```
 5.if it is  successful, visit localhost:100/swagger or  localhost:5000/swagger to see the API documentation.
+
+
+Popularity Formula
+Popularity Score = BookViews * 0.5 - YearsSincePublished * 2
