@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using BookManagement.DataAccess.Repositories;
 using BookManagementAPI.Data;
 using BookManagementAPI.Dto;
 using BookManagementAPI.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 namespace BookManagementAPI.Controllers
 {
@@ -10,87 +12,22 @@ namespace BookManagementAPI.Controllers
     public class BookManagementController:ControllerBase
     {
         private readonly AppDataContext _context;
-        public BookManagementController(AppDataContext context)
+        private readonly IBookManagementRepository _bookManagementRepository;
+        public BookManagementController(AppDataContext context, IBookManagementRepository bookManagementRepository)
         {
             _context = context;
+            _bookManagementRepository = bookManagementRepository;
         }
         [HttpGet("GetBooksByPopularityScore")]
-        public IActionResult GetBooksByPopularityScore([FromQuery,Range(1,99999)] int PageSize = 5, [FromQuery,Range(1,99999)] int PageNumber=1)
+        public async Task<IActionResult> GetBooksByPopularityScore([FromQuery,Range(1,99999)] int PageSize = 5, [FromQuery,Range(1,99999)] int PageNumber=1)
         {
-            var books =_context.Books.Where(x=>x.SoftDeleted==false).OrderByDescending(x => (int)Math.Round(x.ViewsCount * 0.5)
-            -((DateTime.Now.Year-x.PublicationYear)*2)).Skip((PageNumber-1)*PageSize).Take(PageSize)
-            .Select(x=>x.Title).ToList();
+            var books= await _bookManagementRepository.GetBooksByPopularityScore(PageNumber, PageSize);
             return Ok(books);
         }
         [HttpGet("GetBook/{Id:int}")]
-        public IActionResult GetBookDetails(int Id)
+        public async Task<IActionResult> GetBookDetails(int Id)
         {
-            var book = _context.Books.FirstOrDefault(x => x.Id == Id && x.SoftDeleted==false);
-            if(book==null)
-            {
-                return NotFound("The Book Cant Be Found. Please Enter Valid Book Id");
-            }
-            book.ViewsCount++;
-            _context.SaveChanges();
-            int YearsSincePublished = DateTime.Now.Year-book.PublicationYear;
-            int PopularityScore =(int)Math.Round(book.ViewsCount * 0.5)-(YearsSincePublished * 2);
-            object bookextend = new { book.Title,
-                book.AuthorName,
-                book.PublicationYear,
-                book.ViewsCount,
-                YearsSincePublished,
-                PopularityScore
-            };
-            return Ok(bookextend);
-        }
-        [HttpPost("AddBook")]
-        public IActionResult AddBook([FromBody] BookDto bookDto){
-            if(_context.Books.Any(x=>x.Title == bookDto.Title)){
-                return BadRequest("The Book Arleady Exists.Enter diffrent Title");
-            }
-            Books book  =new(){
-                PublicationYear=bookDto.PublicationYear,
-                Title=bookDto.Title,AuthorName=bookDto.AuthorName};
-            _context.Add(book);
-            _context.SaveChanges();
-            return Ok(book);
-        }
-        [HttpPost("AddBooks")]
-        public IActionResult AddBooks([FromBody] List<BookDto> booksdto)
-        {
-            if(booksdto.Count==0)
-            {
-                return BadRequest("Cannot Add zero books");
-            }
-            List<BookDto> found=booksdto.Where(x=>_context.Books
-            .Select(y=>y.Title).Contains(x.Title)).ToList();
-            var foundtitles = found.Select(x => x.Title).ToList();
-            if (found.Count == booksdto.Count)
-            {
-                var replyB = new
-                {
-                    Messege= "Book Exists Or All Books Arleady Exist ",
-                    AlreadyExist = foundtitles
-                };
-                return BadRequest(replyB);
-            }
-           var result = booksdto.Except(found).ToList();
-           List<Books> books=result.Select(x=>new Books {
-           Title = x.Title, AuthorName = x.AuthorName, PublicationYear=x.PublicationYear }).ToList();
-           _context.Books.AddRange(books);
-           _context.SaveChanges();
-            var reply = new
-            {
-               Added = result,
-               AlreadyExist = foundtitles
-            };
-            return Ok(reply);
-        }
-        [HttpPut("UpdateBook/{Id:int}")]
-        public IActionResult UpdateBook(int Id, [FromBody] BookDto bookdto)
-        {
-            var book = _context.Books.FirstOrDefault(x => x.Id == Id);
-            if (book == null)
+            if (await _bookManagementRepository.BookExists(Id)==false)
             {
                 var response = new
                 {
@@ -99,7 +36,69 @@ namespace BookManagementAPI.Controllers
                 };
                 return NotFound(response);
             }
-            if (_context.Books.Any(x => x.Title == bookdto.Title))
+            var book =await _bookManagementRepository.GetBookDetails(Id);
+            return Ok(book);
+        }
+        [HttpPost("AddBook")]
+        public async Task<IActionResult> AddBook([FromBody] BookDto bookDto){
+            bool AddedBook = await _bookManagementRepository.AddBook(bookDto);
+            if (!AddedBook){
+                var res = new
+                {
+                    Messege = "The Book Arleady Exists.Enter diffrent Title",
+                    Book = bookDto
+                };
+                return BadRequest(res);
+            }
+            var response= new
+            {
+                Messege = "The Book Was Added Successfully",
+                Book = bookDto
+            };
+            return Ok(response);
+        }
+        [HttpPost("AddBooks")]
+        public async Task<IActionResult> AddBooks([FromBody] List<BookDto> booksdto)
+        {
+           var (books,ArleadyExists)= await _bookManagementRepository.AddBooks(booksdto);
+            if (booksdto.Count == 0)
+            {
+                return BadRequest("Cannot Add Zero Books");
+            }
+            if(books==null)
+            {
+                return StatusCode(500,"Server Error Could not save to database");
+            }
+            if (ArleadyExists.Count == booksdto.Count)
+            {
+                var resp = new
+                {
+                    Messege = "The Books/Book Arleady Exist/Exists",
+                    ArleadyExists
+                };
+                return BadRequest(resp);
+            }
+            var response = new
+            {
+                Messege = "The Books Were Added Successfully",
+                AddedBooks= books,
+                ArleadyExists
+            };
+            return Ok(response);
+        }
+        [HttpPut("UpdateBook/{Id:int}")]
+        public async Task<IActionResult> UpdateBook(int Id, [FromBody] BookDto bookdto)
+        {
+            if (await _bookManagementRepository.BookExists(Id)== false)
+            {
+                var response = new
+                {
+                    Messege = "The Book Cant Be Found. Please Enter Valid Book Id",
+                    BookID = Id
+                };
+                return NotFound(response);
+            }
+            if (await _bookManagementRepository.BookExists(bookdto.Title))
             {
                 var response = new
                 {
@@ -108,36 +107,34 @@ namespace BookManagementAPI.Controllers
                 };
                 return BadRequest(response);
             }
-            var OldTitle= book.Title;
-            var OldAuthorName = book.AuthorName;
-            var OldPublicationYear = book.PublicationYear;
-            book.Title = bookdto.Title;
-            book.AuthorName = bookdto.AuthorName;
-            book.PublicationYear = bookdto.PublicationYear;
-            _context.SaveChanges();
+            (bool UpdatedBook,BookDto beforeUpdateBook) = await _bookManagementRepository.UpdateBook(Id, bookdto);
+            if(!UpdatedBook)
+            {
+                return StatusCode(500, "Server Error Could not update the book in database");
+            }
             var reply = new
             {
                 Messege = "Book Updated Successfully",
-                beforeUpdateBook = new BookDto { Title =OldTitle, AuthorName =OldAuthorName, PublicationYear = OldPublicationYear},
+                beforeUpdateBook,
                 AfterUpdateBook = bookdto
             };
             return Ok(reply);
         }
         [HttpDelete("DeleteBook/{Id:int}")]
-        public IActionResult DeleteBook(int Id){
-            Books book  = _context.Books.FirstOrDefault(x=>x.Id==Id);
-            if(book==null){
-                return NotFound("The BookId Cannot Be Found.Enter diffrent  Book id");
+        public async Task<IActionResult> DeleteBook(int Id){
+            if (await _bookManagementRepository.BookExists(Id) == false)
+            {
+                return NotFound("The BookId Cannot Be Found Or Was Deleted.Enter diffrent  Book id");
             }
-            if(book.SoftDeleted==true){
-                return BadRequest("The Book Is Arleady Deleted");
+            (bool Result,BookDto bookdto)= await _bookManagementRepository.DeleteBook(Id);
+            if(!Result)
+            {
+                return StatusCode(500, "Server Error Could not delete the book in database");
             }
-            book.SoftDeleted=true;
-            _context.SaveChanges();
             var response = new{
                 Messege="The Book Was Deleted Succesfully",
-                DeletedBook=new BookDto{Title=book.Title,AuthorName=book.AuthorName
-                ,PublicationYear=book.PublicationYear}
+                DeletedBook=new BookDto{Title= bookdto.Title,AuthorName= bookdto.AuthorName
+                ,PublicationYear= bookdto.PublicationYear}
             };
             return Ok(response);
         }

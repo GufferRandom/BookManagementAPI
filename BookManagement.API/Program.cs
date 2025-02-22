@@ -1,3 +1,4 @@
+using BookManagement.DataAccess.Repositories;
 using BookManagementAPI.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +15,7 @@ var database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? builder.Conf
 var passwd = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? builder.Configuration["DB_PASSWORD"];
 var ConnectionString = $"Server={server};Database={database};User Id=sa;Password={passwd};TrustServerCertificate=True";
 builder.Services.AddDbContext<AppDataContext>(x => x.UseSqlServer(ConnectionString));
-
+builder.Services.AddTransient<IBookManagementRepository, BookManagementRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
