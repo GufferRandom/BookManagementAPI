@@ -1,6 +1,4 @@
-
-### 📌 API Endpoints
-#### 📖 BookManagementAPI
+#### 📖 BookManagementAPI EndPoints
 | Method  | Endpoint  | Description |
 |---------|----------|-------------|
 | **GET** | `/api/BookManagement/GetBooksByPopularityScore?PageSize={Size}&PageNumber={Number}` the default Size is 5 and The Default Number is 1 |Retrieve a paginated list of books sorted by popularity in descending order. |
@@ -10,8 +8,6 @@
 | **PUT** | `/api/BookManagement/UpdateBook/{Id}` | Update a book |
 | **DELETE** | `/api/BookManagement/DeleteBook/{Id}` | Soft delete a book  |
 | **DELETE** | `/api/BookManagement/DeleteBooks` | Soft delete multiple books or one |
-
-
 
 # To Run This Project
 
