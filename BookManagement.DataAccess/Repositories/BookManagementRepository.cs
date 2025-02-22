@@ -142,5 +142,36 @@ namespace BookManagement.DataAccess.Repositories
                 return (false,null);
             }
         }
+
+        public async Task<(bool Result, List<BookDto> SoftDelated,List<int> CouldNotBeFound)> DeleteBooks(List<int> Ids)
+        {
+            var books = await GetToBeDeletedBooks(Ids);
+            var booksdto = books.Select(x => new BookDto { AuthorName = x.AuthorName,
+                PublicationYear = x.PublicationYear, Title = x.Title }).ToList();
+            List<int> CouldNotBeFound = Ids.Except(books.Select(x => x.Id)).ToList();
+            if (CouldNotBeFound.Count == Ids.Count)
+            {
+                return (false,booksdto, CouldNotBeFound);
+            }
+            try
+            {
+            foreach (var book in books)
+            {
+                book.SoftDeleted = true;
+            }
+                await _context.SaveChangesAsync();
+                return (true, booksdto, CouldNotBeFound);
+            }
+            catch(Exception ex)
+            {
+                return (false, null, null);
+            }
+        }
+        public async Task<List<Books>> GetToBeDeletedBooks(List<int> Ids)
+        {
+            var books= await _context
+                .Books.Where(x => Ids.Contains(x.Id) && x.SoftDeleted == false).ToListAsync();
+            return books;
+        }
     }
 }

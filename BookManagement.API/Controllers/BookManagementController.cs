@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 using BookManagement.DataAccess.Repositories;
 using BookManagementAPI.Data;
 using BookManagementAPI.Dto;
@@ -138,42 +139,36 @@ namespace BookManagementAPI.Controllers
             };
             return Ok(response);
         }
-       
         [HttpDelete("DeleteBooks")]
-        public IActionResult DeleteBooks([FromBody] List<int> BookIds)
+        public async Task<IActionResult> DeleteBooks([FromBody] List<int> BookIds)
         {
             if (BookIds.Count == 0)
             {
                 return BadRequest("Cannot Delete zero books");
             }
-            var books = _context.Books.Where(x => x.SoftDeleted == false && BookIds.Contains(x.Id)).ToList();
-            List<int> ErrorBookIds=new();
-            if (books.Count!=BookIds.Count)
+            (bool Result, List<BookDto> SoftDelated, List<int> CouldNotBeFound) = await _bookManagementRepository.DeleteBooks(BookIds);
+            if(CouldNotBeFound == null && SoftDelated == null && Result==false)
             {
-                ErrorBookIds = BookIds.Except(books.Select(x => x.Id)).ToList();
+                return StatusCode(500, "Server Error Could Not Delete in server");
             }
-            if (books.Count == 0)
-            {
+            if (Result == false) {
                 var response = new
                 {
-                    Messege = "The Book Or The Books Cant Be Found.Enter Valid BookID",
-                    ErrorBookIds
+                    Messege = "All Books Arleady Exist Or Is Deleted",
+                    Result,
+                    SoftDelated,
+                    CouldNotBeFound,
                 };
-                return NotFound(response);
+                return BadRequest(response);
             }
-            foreach(var i in books)
+            var respons = new
             {
-                i.SoftDeleted= true;
-            }
-            List<int> SoftDeletedIds = new();
-            SoftDeletedIds = BookIds.Except(ErrorBookIds).ToList();
-            var res = new
-            {
-                SoftDeleted = SoftDeletedIds,
-                ErrorBookIds
+                Messege = "Deleted Books",
+                Result,
+                SoftDelated,
+                CouldNotBeFound,
             };
-            _context.SaveChanges();
-            return Ok(res);
+            return Ok(respons);
         }
     }
 }
