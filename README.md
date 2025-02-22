@@ -31,8 +31,16 @@ dotnet run
 If you prefer to run the project using Docker, follow these steps:
 
 1. Make sure Docker and Docker Compose are installed.
-2. Run the following command to build and start the container:
+2. Clone The Git Repository
+ ```bash
+git clone https://github.com/GufferRandom/BookManagementAPI.git
+```
+3.Enter The Directory
+```bash
+cd .\BookManagementAPI
+```
+4. Run the following command to build and start the container:
 
    ```bash
    docker-compose -f 'docker-compose.yml' up -d --build
-3.if it is  successful, visit localhost:100/swagger to see the API documentation.
+3.if it is  successful, visit localhost:100/swagger or  localhost:5000/swagger to see the API documentation.
