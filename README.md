@@ -1,3 +1,18 @@
+
+### 📌 API Endpoints
+
+| Method  | Endpoint  | Description |
+|---------|----------|-------------|
+| **GET** | `/api` | Get |
+| **GET** | `/api` | Get |
+| **POST** | `/api` | Add |
+| **POST** | `/api` | Add  |
+| **PUT** | `/api/` | Upda |
+| **DELETE** | `` | Soft  |
+| **DELETE** | `` | Soft |
+
+
+
 # To Run This Project
 
 You can run this project locally, but you need SQL Server and .NET 9.0 installed.
