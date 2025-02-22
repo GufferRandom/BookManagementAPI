@@ -16,7 +16,7 @@ services:
       context: .
     ports:
       - "100:8080"
-      - "5000: 8080"
+      - "5000:8080"
     depends_on:
       - sqlserver
     environment:
