@@ -51,7 +51,7 @@ git clone https://github.com/GufferRandom/BookManagementAPI.git
 ```
 3.Enter The Directory
 ```bash
-cd .\BookManagementAPI
+cd BookManagementAPI
 ```
 4. Run the following command to build and start the container:
 ```bash
