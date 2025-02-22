@@ -20,7 +20,7 @@ git clone https://github.com/GufferRandom/BookManagementAPI.git
 ```
 then enter the directory and then subdirectory 
 ```bash
-cd .\BookManagementAPI\BookManagement.API\
+cd BookManagementAPI/BookManagement.API
 ```
 ## 2. Set up your configuration:
 
