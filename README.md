@@ -40,7 +40,7 @@ git clone https://github.com/GufferRandom/BookManagementAPI.git
 cd .\BookManagementAPI
 ```
 4. Run the following command to build and start the container:
-
-   ```bash
+```bash
    docker-compose -f 'docker-compose.yml' up -d --build
-3.if it is  successful, visit localhost:100/swagger or  localhost:5000/swagger to see the API documentation.
+```
+5.if it is  successful, visit localhost:100/swagger or  localhost:5000/swagger to see the API documentation.
