@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using BookManagement.DataAccess.Repositories;
 using BookManagementAPI.Data;
@@ -42,14 +43,20 @@ namespace BookManagementAPI.Controllers
         }
         [HttpPost("AddBook")]
         public async Task<IActionResult> AddBook([FromBody] BookDto bookDto){
-            bool AddedBook = await _bookManagementRepository.AddBook(bookDto);
-            if (!AddedBook){
+            bool exists = await _bookManagementRepository.BookExists(bookDto.Title);
+            if (exists)
+            {
                 var res = new
                 {
                     Messege = "The Book Arleady Exists.Enter diffrent Title",
                     Book = bookDto
                 };
                 return BadRequest(res);
+            }
+            bool AddedBook = await _bookManagementRepository.AddBook(bookDto);
+            if (!AddedBook){
+               
+                return StatusCode(500,"It Cant Be Added On Server .Server Error");
             }
             var response= new
             {

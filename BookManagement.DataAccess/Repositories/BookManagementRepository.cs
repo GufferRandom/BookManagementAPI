@@ -52,10 +52,6 @@ namespace BookManagement.DataAccess.Repositories
         }
         public async Task<bool> AddBook(BookDto bookDto)
         {
-            bool alreadyExists = await _context.Books.AnyAsync(x => x.Title.ToLower() == bookDto.Title.ToLower());
-            if (alreadyExists)      {
-                return false;
-            }
             Books book  = new Books(){
                 Title=bookDto.Title,
                 AuthorName=bookDto.AuthorName,
@@ -65,7 +61,7 @@ namespace BookManagement.DataAccess.Repositories
             {
                 await _context.AddAsync(book);
                 await _context.SaveChangesAsync();
-            return true;
+             return true;
             }
             catch(Exception ex)
             {
@@ -77,9 +73,9 @@ namespace BookManagement.DataAccess.Repositories
           
             var bookTitles = await _context.Books
             .Where(y => y.SoftDeleted == false)
-            .Select(y => y.Title)
+            .Select(y => y.Title.ToLower())
             .ToListAsync();
-            var found = bookDtos.Where(x => bookTitles.Contains(x.Title)).ToList();
+            var found = bookDtos.Where(x => bookTitles.Contains(x.Title.ToLower())).ToList();
             var AddedBooks=bookDtos.Except(found).ToList();
             var res = AddedBooks.Select(x=>new Books
             {
@@ -120,12 +116,14 @@ namespace BookManagement.DataAccess.Repositories
         }
         public async Task<bool> BookExists(int Id)
         {
+
             bool exists = await _context.Books.AnyAsync(x => x.Id == Id && x.SoftDeleted ==false);
             return exists;
         }
         public async Task<bool> BookExists(string Title)
         {
-            bool exists= await _context.Books.AnyAsync(x=>x.Title== Title && x.SoftDeleted == false);
+
+            bool exists= await _context.Books.AnyAsync(x=>x.Title.ToLower()== Title.ToLower() && x.SoftDeleted == false);
             return exists;
         }
         public async Task<(bool Result,BookDto bookdto)> DeleteBook(int Id)
@@ -142,7 +140,6 @@ namespace BookManagement.DataAccess.Repositories
                 return (false,null);
             }
         }
-
         public async Task<(bool Result, List<BookDto> SoftDelated,List<int> CouldNotBeFound)> DeleteBooks(List<int> Ids)
         {
             var books = await GetToBeDeletedBooks(Ids);
